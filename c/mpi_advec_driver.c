@@ -294,7 +294,7 @@ void mpi_advec_output(MpiDriverData *d, int t)
                     pixmap, full_pixmap, d->nx_local * status.MPI_SOURCE);
         }
         char filename[PATH_MAX];
-        sprintf(filename, "serial_advec_%04d.bmp", t);
+        sprintf(filename, "mpi_advec_%04d.bmp", t);
         save_bitmap(full_pixmap, d->nx, d->ny, filename);
         free(full_pixmap);
     }
