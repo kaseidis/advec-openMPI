@@ -31,6 +31,8 @@ typedef struct {
   int cart_dims[1];     //! The dimensions of cart_comm
   int cart_periodic[1]; //! Specifies which boundaries are periodic
 
+  MPI_Datatype mpi_rgb_type;
+
 } MpiDriverData;
 
 MpiDriverData mpi_advec_init(double L, int nx, double dt, double u, double v);

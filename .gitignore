@@ -1,0 +1,96 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+*.lo
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Cmake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# Report
+~$*.docx
+*.docx
+particle
+*.bmp
+*.xlsx
+*.csv
+
+# Project
+julia_mpi_static
+julia_mpi_dynamic
+julia_serial
+
+# Visual Studio
+*.vcxproj
+*.vcxproj.*
+Debug/*
+x64/*
+Release/*
+*.sln
+.vs
+.vscode
+
+# CUDA MSVC
+*.dir/*
+
+# Test Utility
+*.dat

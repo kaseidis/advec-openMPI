@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD 11)
 find_package(MPI)
 
 # Serial advection, C++
-add_executable(serial_advec_cpp cpp/serial_advec_main.cpp bitmap/bitmap.c)
-target_include_directories(serial_advec_cpp PUBLIC cpp bitmap)
+# add_executable(serial_advec_cpp cpp/serial_advec_main.cpp bitmap/bitmap.c)
+# target_include_directories(serial_advec_cpp PUBLIC cpp bitmap)
 
 # Serial advection, C
 add_executable(serial_advec_c c/serial_advec_main.c c/serial_advec_driver.c c/simple_mat.c bitmap/bitmap.c)
@@ -17,9 +17,9 @@ target_link_libraries(serial_advec_c PUBLIC m)
 
 if (MPI_FOUND)
     # MPI advection, C++
-    add_executable(mpi_advec_cpp cpp/mpi_advec_main.cpp bitmap/bitmap.c)
-    target_include_directories(mpi_advec_cpp PUBLIC cpp bitmap)
-    target_link_libraries(mpi_advec_cpp PUBLIC MPI::MPI_C)
+    # add_executable(mpi_advec_cpp cpp/mpi_advec_main.cpp bitmap/bitmap.c)
+    # target_include_directories(mpi_advec_cpp PUBLIC cpp bitmap)
+    # target_link_libraries(mpi_advec_cpp PUBLIC MPI::MPI_C)
 
     # MPI advection, C
     add_executable(mpi_advec_c c/mpi_advec_main.c c/mpi_advec_driver.c c/simple_mat.c bitmap/bitmap.c)

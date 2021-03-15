@@ -4,7 +4,18 @@
 
 #include "serial_advec_driver.h"
 #include "bitmap.h"
-#include <limits.h>
+#ifdef __linux__
+    #include <linux/limits.h>
+#elif defined _MSC_VER
+    #include <windows.h>
+    #ifndef PATH_MAX
+        #define PATH_MAX MAX_PATH
+    #endif
+    #pragma warning(disable:4996)
+    #pragma warning(disable:4477)
+#else
+    #include <limits.h>
+#endif
 #include <math.h>
 #include <stdio.h>
 
