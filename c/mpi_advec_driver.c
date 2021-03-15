@@ -105,6 +105,7 @@ MpiDriverData mpi_advec_init(double L, int nx, double dt, double u, double v)
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &d.mpi_rgb_type);
     MPI_Type_commit(&d.mpi_rgb_type);
 
+    /*
     // Useful for debugging
     for (int i = 0; i < d.cart_size; ++i)
     {
@@ -121,6 +122,7 @@ MpiDriverData mpi_advec_init(double L, int nx, double dt, double u, double v)
         }
         MPI_Barrier(d.cart_comm);
     }
+    */
 
     d.c = init_simple_mat(d.nx_local + 2, d.ny_local + 2);
     d.c_nxt = init_simple_mat(d.nx_local + 2, d.ny_local + 2);
@@ -136,7 +138,7 @@ MpiDriverData mpi_advec_init(double L, int nx, double dt, double u, double v)
     }
 
     d.c_max = max_simple_mat(&d.c);
-    
+
     //Sync c_max
     if (d.cart_coords[0]==0) {
         double local_max;
@@ -294,9 +296,9 @@ void mpi_advec_output(MpiDriverData *d, int t)
         {
             MPI_Recv(pixmap, d->nx_local * d->ny_local,
                      d->mpi_rgb_type, MPI_ANY_SOURCE,
-                     MPI_ANY_TAG, d->cart_comm, &status);
+                     t, d->cart_comm, &status);
             rgb_cpy(d->nx, d->nx_local, d->ny_local,
-                    pixmap, full_pixmap, d->nx_local * status.MPI_TAG);
+                    pixmap, full_pixmap, d->nx_local * status.MPI_SOURCE);
         }
         char filename[PATH_MAX];
         sprintf(filename, "serial_advec_%04d.bmp", t);
@@ -306,7 +308,7 @@ void mpi_advec_output(MpiDriverData *d, int t)
     else
     {
         MPI_Send(pixmap, d->nx_local * d->ny_local,
-                 d->mpi_rgb_type, 0, d->cart_coords[0],
+                 d->mpi_rgb_type, 0, t,
                  d->cart_comm);
     }
     free(pixmap);
