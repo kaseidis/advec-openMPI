@@ -137,24 +137,10 @@ MpiDriverData mpi_advec_init(double L, int nx, double dt, double u, double v)
         }
     }
 
-    d.c_max = max_simple_mat(&d.c);
+    double local_max = max_simple_mat(&d.c);
 
     //Sync c_max
-    if (d.cart_coords[0]==0) {
-        double local_max;
-        for (int i=1; i<d.cart_size; ++i) {
-            MPI_Recv(&local_max,1,MPI_DOUBLE,MPI_ANY_SOURCE,1000,d.cart_comm,MPI_STATUS_IGNORE);
-            if (local_max>d.c_max) {
-                d.c_max = local_max;
-            }
-        }
-        for (int i=1; i<d.cart_size; ++i) {
-            MPI_Send(&d.c_max,1,MPI_DOUBLE,i,1001,d.cart_comm);
-        }
-    } else {
-        MPI_Send(&d.c_max,1,MPI_DOUBLE,0,1000,d.cart_comm);
-        MPI_Recv(&d.c_max,1,MPI_DOUBLE,0,1001,d.cart_comm,MPI_STATUS_IGNORE);
-    }
+    MPI_Allreduce(&local_max,&(d.c_max),1,MPI_DOUBLE,MPI_MAX,d.cart_comm);
 
     return d;
 }
@@ -271,7 +257,7 @@ void mpi_advec_output(MpiDriverData *d, int t)
 {
     const int nx_local = d->nx_local;
     const int ny_local = d->ny_local;
-
+    // Calculate local pixel map
     RgbTriple *pixmap = malloc(d->nx_local * d->ny_local * sizeof(RgbTriple));
     for (int i = 0; i < d->nx_local; ++i)
         for (int j = 0; j < d->ny_local; ++j)
@@ -286,7 +272,14 @@ void mpi_advec_output(MpiDriverData *d, int t)
             p->blue = color;
         }
 
-    if (d->cart_coords[0] == 0)
+    // Send local bitmap to IO rank
+    if (d->cart_coords[0] != 0)
+    {
+        MPI_Send(pixmap, d->nx_local * d->ny_local,
+                 d->mpi_rgb_type, 0, t+66005,
+                 d->cart_comm);
+    }
+    else // Send IO rank receive map and save it to file.
     {
         MPI_Status status;
         RgbTriple *full_pixmap = malloc(d->nx * d->ny * sizeof(RgbTriple));
@@ -296,7 +289,7 @@ void mpi_advec_output(MpiDriverData *d, int t)
         {
             MPI_Recv(pixmap, d->nx_local * d->ny_local,
                      d->mpi_rgb_type, MPI_ANY_SOURCE,
-                     t, d->cart_comm, &status);
+                     t+66005, d->cart_comm, &status);
             rgb_cpy(d->nx, d->nx_local, d->ny_local,
                     pixmap, full_pixmap, d->nx_local * status.MPI_SOURCE);
         }
@@ -304,12 +297,6 @@ void mpi_advec_output(MpiDriverData *d, int t)
         sprintf(filename, "serial_advec_%04d.bmp", t);
         save_bitmap(full_pixmap, d->nx, d->ny, filename);
         free(full_pixmap);
-    }
-    else
-    {
-        MPI_Send(pixmap, d->nx_local * d->ny_local,
-                 d->mpi_rgb_type, 0, t,
-                 d->cart_comm);
     }
     free(pixmap);
 
