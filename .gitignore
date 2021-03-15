@@ -75,9 +75,8 @@ particle
 *.csv
 
 # Project
-julia_mpi_static
-julia_mpi_dynamic
-julia_serial
+mpi_advec_c
+serial_advec_c
 
 # Visual Studio
 *.vcxproj

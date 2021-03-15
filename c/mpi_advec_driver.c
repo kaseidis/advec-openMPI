@@ -136,6 +136,23 @@ MpiDriverData mpi_advec_init(double L, int nx, double dt, double u, double v)
     }
 
     d.c_max = max_simple_mat(&d.c);
+    
+    //Sync c_max
+    if (d.cart_coords[0]==0) {
+        double local_max;
+        for (int i=1; i<d.cart_size; ++i) {
+            MPI_Recv(&local_max,1,MPI_DOUBLE,MPI_ANY_SOURCE,1000,d.cart_comm,MPI_STATUS_IGNORE);
+            if (local_max>d.c_max) {
+                d.c_max = local_max;
+            }
+        }
+        for (int i=1; i<d.cart_size; ++i) {
+            MPI_Send(&d.c_max,1,MPI_DOUBLE,i,1001,d.cart_comm);
+        }
+    } else {
+        MPI_Send(&d.c_max,1,MPI_DOUBLE,0,1000,d.cart_comm);
+        MPI_Recv(&d.c_max,1,MPI_DOUBLE,0,1001,d.cart_comm,MPI_STATUS_IGNORE);
+    }
 
     return d;
 }
@@ -163,72 +180,68 @@ void mpi_advec_update_ghost_cells(MpiDriverData *d)
 
     bool is_even = (d->cart_coords[0] % 2 == 0);
 
+    // 1. Even ranks send top interior row to top neighbor
     if (is_even)
     {
-        // 1. Even ranks send top interior row to top neighbor
         MPI_Send(&d->c.at[nx_local][1], ny_local, MPI_DOUBLE, nbr_up, 314159, d->cart_comm);
     }
     else
     {
-        // 1. Odd ranks recv bottom ghost row from bottom neighbor
         MPI_Recv(&d->c.at[0][1],
                  ny_local,
                  MPI_DOUBLE,
                  nbr_down,
-                 MPI_ANY_TAG,
+                 314159,
                  d->cart_comm,
                  MPI_STATUS_IGNORE);
     }
 
+    // 2. Even ranks recv bottom ghost row from bottom neighbor
     if (is_even)
     {
-        // 2. Even ranks recv bottom ghost row from bottom neighbor
         MPI_Recv(&d->c.at[0][1],
                  ny_local,
                  MPI_DOUBLE,
                  nbr_down,
-                 MPI_ANY_TAG,
+                 314160,
                  d->cart_comm,
                  MPI_STATUS_IGNORE);
     }
     else
     {
-        // 2. Odd ranks send top interior row to top neighbor
-        MPI_Send(&d->c.at[nx_local][1], ny_local, MPI_DOUBLE, nbr_up, 314159, d->cart_comm);
+        MPI_Send(&d->c.at[nx_local][1], ny_local, MPI_DOUBLE, nbr_up, 314160, d->cart_comm);
     }
 
+    // 3. Even ranks send bottom interior row to bottom neighbor
     if (is_even)
     {
-        // 3. Even ranks send bottom interior row to bottom neighbor
-        MPI_Send(&d->c.at[1][1], ny_local, MPI_DOUBLE, nbr_down, 314159, d->cart_comm);
+        MPI_Send(&d->c.at[1][1], ny_local, MPI_DOUBLE, nbr_down, 314161, d->cart_comm);
     }
     else
     {
-        // 3. Odd ranks recv top ghost row from top  neighbor
         MPI_Recv(&d->c.at[nx_local + 1][1],
                  ny_local,
                  MPI_DOUBLE,
                  nbr_up,
-                 MPI_ANY_TAG,
+                 314161,
                  d->cart_comm,
                  MPI_STATUS_IGNORE);
     }
 
+    // 4. Even ranks recv top ghost row from top neighbor
     if (is_even)
     {
-        // 4. Even ranks recv top ghost row from top  neighbor
         MPI_Recv(&d->c.at[nx_local + 1][1],
                  ny_local,
                  MPI_DOUBLE,
                  nbr_up,
-                 MPI_ANY_TAG,
+                 314162,
                  d->cart_comm,
                  MPI_STATUS_IGNORE);
     }
     else
     {
-        // 4. Odd ranks send bottom interior row to bottom neighbor
-        MPI_Send(&d->c.at[1][1], ny_local, MPI_DOUBLE, nbr_down, 314159, d->cart_comm);
+        MPI_Send(&d->c.at[1][1], ny_local, MPI_DOUBLE, nbr_down, 314162, d->cart_comm);
     }
 }
 
@@ -262,6 +275,9 @@ void mpi_advec_output(MpiDriverData *d, int t)
         for (int j = 0; j < d->ny_local; ++j)
         {
             unsigned char color = d->c.at[i + 1][j + 1] * 255 / d->c_max;
+            if (d->c.at[i+1][j+1]>d->c_max) {
+                color=255;
+            }
             RgbTriple *p = &pixmap[DATAINDEX(nx_local, ny_local, i, j)];
             p->red = color;
             p->green = color;
@@ -318,6 +334,7 @@ void mpi_advec_advance(MpiDriverData *d)
                                 dt / (2.0 * dx) *
                                     (u * (d->c.at[i - 1][j] - d->c.at[i + 1][j]) +
                                      v * (d->c.at[i][j - 1] - d->c.at[i][j + 1]));
+            
         }
     }
     copy_simple_mat(&d->c, &d->c_nxt);
