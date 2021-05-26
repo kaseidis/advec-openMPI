@@ -1,9 +1,6 @@
-# Advection solver
+# Advection solver openMPI
 
-Advection solver with periodic boundaries
-
-## Author Name
-Shenghua Chen
+Advection solver with periodic boundaries, using openMPI
 
 ## Comments
 
