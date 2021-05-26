@@ -1,6 +1,6 @@
-# Homework 8 - MPCS HPC Winter 2021
+# Advection solver
 
-See assignment at:  https://www.dropbox.com/s/jvsdzmsnnb2p2rx/homework%208%20-%20mpcs%20hpc%20winter%202021.pdf?dl=0 
+Advection solver with periodic boundaries
 
 ## Author Name
 Shenghua Chen
@@ -14,7 +14,7 @@ Here is file list:
 - ``c/serial_advec_main.c`` Main function for above code.
 - ``c/mpi_advec_driver.c[h]`` Code do advection with MPI.
 - ``c/mpi_advec_main.c`` Main function for above code.
-- ``c/simple_mat.c[h]`` Simple matrix code provided.
+- ``c/simple_mat.c[h]`` Simple matrix code
 
 ## Instruction for compile
 Navigate to problem folder, run ``cmake .`` then ``make``.
